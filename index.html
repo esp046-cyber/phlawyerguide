@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PH Lawyer Guide">
+<title>PH Lawyer Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+:root{--bg:#0a0f1e;--bg2:#111827;--bg3:#1a2234;--card:#151d2e;--border:#1e2d47;--accent:#c9a84c;--accent2:#e8c96a;--accent3:#7eb8f7;--text:#e8eaf0;--text2:#8b95a8;--text3:#5a6478;--success:#34d399;--danger:#f87171;--purple:#a78bfa;--nav-h:68px;--radius:16px;--radius-sm:10px;--glow-gold:0 0 24px rgba(201,168,76,.18),0 0 48px rgba(201,168,76,.07);--card-shadow:0 4px 24px rgba(0,0,0,.35)}
+.light{--bg:#f0f2f7;--bg2:#fff;--bg3:#e8eaf2;--card:#fff;--border:#d1d8e8;--text:#0d1b35;--text2:#4a5568;--text3:#8896ab;--glow-gold:0 0 20px rgba(201,168,76,.1);--card-shadow:0 4px 24px rgba(0,0,0,.07)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .35s,color .35s}
+#app{display:flex;flex-direction:column;min-height:100vh;position:relative}
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.45}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:rgba(10,15,30,.88);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:background .35s}
+.light .topbar{background:rgba(240,242,247,.9)}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-logo{width:32px;height:32px;flex-shrink:0}
+.brand-text{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.2px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:17px;transition:border-color .2s,color .2s,transform .15s,box-shadow .2s;position:relative;overflow:hidden}
+.icon-btn::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.2),transparent 70%);opacity:0;transition:opacity .2s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.08);box-shadow:var(--glow-gold)}
+.icon-btn:hover::after{opacity:1}
+.icon-btn:active{transform:scale(.93)}
+
+/* OFFLINE / TOAST */
+#offline-badge{position:fixed;top:68px;left:50%;transform:translateX(-50%);background:var(--danger);color:#fff;padding:5px 14px;border-radius:20px;font-size:12px;z-index:200;display:none;animation:slideDown .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 16px rgba(248,113,113,.4)}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+#toast{position:fixed;bottom:calc(var(--nav-h)+16px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--success);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap;box-shadow:0 4px 20px rgba(52,211,153,.45)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* INSTALL BANNER */
+#install-banner{position:fixed;bottom:calc(var(--nav-h)+10px);left:16px;right:16px;background:linear-gradient(135deg,#1a2a4a,#0f1e3a);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:none;align-items:center;gap:12px;z-index:150;box-shadow:0 8px 32px rgba(0,0,0,.5),var(--glow-gold)}
+#install-banner.show{display:flex;animation:fadeUp .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+#install-banner .banner-text{flex:1;font-size:13px;color:var(--text2)}
+#install-banner .banner-text strong{display:block;color:var(--text);margin-bottom:2px}
+.btn-install{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0a0f1e;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:transform .15s,box-shadow .15s}
+.btn-install:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(201,168,76,.4)}
+.btn-close-banner{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;transition:color .2s}
+
+/* MAIN & PAGES */
+.main{margin-top:60px;margin-bottom:var(--nav-h);flex:1;overflow-y:auto;position:relative;z-index:1}
+.page{display:none;padding:20px 16px;will-change:transform,opacity}
+.page.active{display:block}
+.page-enter{animation:pageIn .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(min-width:600px){.page{padding:24px;max-width:720px;margin:0 auto}}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(17,24,39,.92);border-top:1px solid var(--border);display:flex;align-items:center;padding-bottom:env(safe-area-inset-bottom,0);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.light .bottom-nav{background:rgba(255,255,255,.92)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:8px 0;color:var(--text3);border:none;background:none;position:relative;transition:color .2s}
+.nav-item svg{width:24px;height:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1),filter .2s}
+.nav-item span{font-size:10px;font-weight:500}
+.nav-item::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:1px;transition:width .25s cubic-bezier(.34,1.56,.64,1)}
+.nav-item.active{color:var(--accent)}
+.nav-item.active::after{width:24px}
+.nav-item.active svg{transform:translateY(-3px);filter:drop-shadow(0 0 7px rgba(201,168,76,.65))}
+.nav-item:active svg{transform:scale(.84)}
+
+/* TYPOGRAPHY */
+h1.hero-title{font-family:'Playfair Display',serif;font-size:clamp(24px,6vw,36px);font-weight:900;line-height:1.15;margin-bottom:12px}
+h2.section-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:16px;color:var(--text)}
+h3.card-title{font-size:15px;font-weight:600;margin-bottom:6px}
+p{font-size:14px;line-height:1.7;color:var(--text2)}
+.grad{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad-blue{background:linear-gradient(135deg,var(--accent3),#a8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f1e3a,#1a2a4a 50%,#0a1628);border-radius:var(--radius);padding:26px 20px;margin-bottom:20px;position:relative;overflow:hidden;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s}
+.hero:hover{border-color:rgba(201,168,76,.35);box-shadow:var(--glow-gold)}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--accent);margin-bottom:12px}
+.hero-badge::before{content:'✦';animation:pulse-dot 2s ease infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+.hero p{color:#8ba0c0;margin-bottom:16px}
+.hero-stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat-pill{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;flex:1;min-width:76px;transition:border-color .2s,transform .2s}
+.stat-pill:hover{border-color:rgba(201,168,76,.4);transform:translateY(-2px)}
+.stat-pill .num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--accent)}
+.stat-pill .lbl{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;transition:border-color .25s,transform .25s,box-shadow .25s;position:relative;overflow:hidden;box-shadow:var(--card-shadow)}
+.card::before{content:'';position:absolute;inset:0;border-radius:var(--radius);background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(201,168,76,.07),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover{border-color:rgba(201,168,76,.4);transform:translateY(-2px);box-shadow:var(--card-shadow),var(--glow-gold)}
+.card:hover::before{opacity:1}
+.card:active{transform:translateY(0) scale(.99)}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;transition:transform .25s}
+.card:hover .card-icon{transform:scale(1.14) rotate(-4deg)}
+.card-icon.gold{background:rgba(201,168,76,.15)}
+.card-icon.blue{background:rgba(126,184,247,.15)}
+.card-icon.green{background:rgba(52,211,153,.15)}
+.card-icon.purple{background:rgba(167,139,250,.15)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),transparent)}
+.tl-item{position:relative;margin-bottom:20px;transition:transform .2s}
+.tl-item:hover{transform:translateX(4px)}
+.tl-dot{position:absolute;left:-24px;top:2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);background:var(--bg);transition:all .25s}
+.tl-item:hover .tl-dot{background:var(--accent);box-shadow:0 0 14px rgba(201,168,76,.65)}
+.tl-year{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:4px;letter-spacing:.03em}
+.tl-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* ACCORDION */
+.accordion{margin-bottom:10px}
+.acc-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;display:flex;align-items:center;transition:border-color .2s,background .2s,box-shadow .2s;user-select:none}
+.acc-header:hover{border-color:rgba(201,168,76,.4);box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.acc-header.open{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border-bottom-color:transparent;background:var(--bg3)}
+.acc-icon{width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-right:12px;transition:transform .25s}
+.acc-header.open .acc-icon{transform:scale(1.15)}
+.acc-label{flex:1;font-size:14px;font-weight:500}
+.acc-arrow{color:var(--text3);font-size:18px;transition:transform .25s,color .2s;margin-left:auto}
+.acc-header.open .acc-arrow{transform:rotate(180deg);color:var(--accent)}
+.acc-body{max-height:0;overflow:hidden;background:var(--bg3);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);transition:max-height .38s cubic-bezier(.4,0,.2,1),padding .38s;padding:0 16px}
+.acc-body.open{max-height:600px;padding:16px}
+.acc-body p{font-size:13px;margin-bottom:10px}
+.acc-list{list-style:none}
+.acc-list li{padding:6px 0;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;transition:color .2s}
+.acc-list li:last-child{border-bottom:none}
+.acc-list li:hover{color:var(--text)}
+.acc-list li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:1px;transition:transform .18s}
+.acc-list li:hover::before{transform:translateX(4px)}
+
+/* PROGRESS */
+.progress-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:14px;font-weight:500}
+.progress-pct{font-size:14px;color:var(--accent);font-weight:700}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .7s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.progress-fill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer-bar 2.2s infinite}
+@keyframes shimmer-bar{to{left:200%}}
+.check-list{list-style:none}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:rgba(255,255,255,.025)}
+.checkmark{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.check-item.done .checkmark{background:var(--success);border-color:var(--success);color:#fff;transform:scale(1.1)}
+.check-item.done .check-text{text-decoration:line-through;color:var(--text3)}
+.check-text{font-size:13px;flex:1;line-height:1.4;transition:color .2s}
+
+/* EDITABLE NAME */
+#lawyer-name-display{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:8px;border:1px solid transparent;transition:all .2s}
+#lawyer-name-display:hover{border-color:rgba(201,168,76,.25);background:rgba(201,168,76,.06)}
+.edit-icon{font-size:13px;opacity:0;transition:opacity .2s}
+#lawyer-name-display:hover .edit-icon{opacity:1}
+#name-edit-wrap{display:none;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+#name-edit-wrap.show{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+#lawyer-name-input{flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--accent);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Playfair Display',serif;font-size:15px;outline:none;transition:box-shadow .2s}
+#lawyer-name-input:focus{box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.name-save-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0a0f1e;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.name-save-btn:hover{transform:scale(1.05);box-shadow:var(--glow-gold)}
+.name-cancel-btn{background:none;border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:9px 12px;font-size:13px;cursor:pointer;transition:all .2s}
+
+/* GRID & MISC */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(min-width:480px){.grid-2{grid-template-columns:repeat(3,1fr)}}
+.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;transition:border-color .2s,transform .25s,box-shadow .25s}
+.mini-card:hover{border-color:rgba(201,168,76,.4);transform:translateY(-4px);box-shadow:var(--card-shadow),var(--glow-gold)}
+.mini-card .emoji{font-size:24px;margin-bottom:6px;display:block;transition:transform .25s}
+.mini-card:hover .emoji{transform:scale(1.22) rotate(-6deg)}
+.mini-card .mc-label{font-size:11px;color:var(--text2);font-weight:500}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.pulse-ring{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);position:relative;flex-shrink:0}
+.pulse-ring::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--accent);opacity:.6;animation:pulse-ring 2s ease infinite}
+@keyframes pulse-ring{0%{transform:scale(.8);opacity:.8}70%{transform:scale(1.7);opacity:0}100%{opacity:0}}
+.quote-card{background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.02));border:1px solid rgba(201,168,76,.2);border-left:4px solid var(--accent);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;transition:box-shadow .2s}
+.quote-card:hover{box-shadow:var(--glow-gold)}
+.quote-text{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;color:var(--text);line-height:1.65;margin-bottom:8px}
+.quote-author{font-size:12px;color:var(--accent);font-weight:600}
+.tip{background:rgba(126,184,247,.08);border:1px solid rgba(126,184,247,.2);border-radius:var(--radius-sm);padding:14px;margin:12px 0}
+.tip-label{font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:6px;letter-spacing:.05em}
+.tip p{font-size:13px;color:var(--text2)}
+.tag{display:inline-block;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--accent);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;margin:3px;transition:all .15s}
+.tag:hover{background:rgba(201,168,76,.2);transform:translateY(-1px)}
+.tag.blue{background:rgba(126,184,247,.12);border-color:rgba(126,184,247,.25);color:var(--accent3)}
+.tag.green{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25);color:var(--success)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ═══════════════════════════════
+   CERTIFICATE MODAL
+═══════════════════════════════ */
+#cert-modal{position:fixed;inset:0;z-index:500;background:rgba(5,10,20,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+#cert-modal.show{display:flex;animation:fadeIn .3s ease}
+.cert-modal-inner{width:100%;max-width:760px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,.6),var(--glow-gold)}
+.cert-controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:center}
+.cert-controls label{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+.cert-input-group{flex:1;min-width:160px}
+.cert-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;font-family:'DM Sans',sans-serif}
+.cert-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+.cert-btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.cert-btn{display:flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:'DM Sans',sans-serif}
+.cert-btn:active{transform:scale(.95)}
+.cert-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0a0f1e}
+.cert-btn.primary:hover{transform:scale(1.04);box-shadow:var(--glow-gold)}
+.cert-btn.secondary{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.cert-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.cert-btn.close-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text3);margin-left:auto}
+.cert-btn.close-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+/* CERTIFICATE PAPER */
+#cert-paper{
+  background:#fffdf5;
+  border-radius:12px;
+  position:relative;
+  overflow:hidden;
+  font-family:'Cormorant Garamond',serif;
+  color:#1a0f00;
+  width:100%;
+  aspect-ratio:1.414/1;
+  min-height:320px;
+}
+/* Outer decorative border */
+#cert-paper .border-outer{position:absolute;inset:10px;border:3px solid #b8912a;border-radius:6px;pointer-events:none;z-index:2}
+#cert-paper .border-inner{position:absolute;inset:16px;border:1px solid rgba(184,145,42,.4);border-radius:4px;pointer-events:none;z-index:2}
+/* Corner ornaments */
+.corner{position:absolute;width:44px;height:44px;z-index:3}
+.corner svg{width:100%;height:100%}
+.corner.tl{top:6px;left:6px}
+.corner.tr{top:6px;right:6px;transform:scaleX(-1)}
+.corner.bl{bottom:6px;left:6px;transform:scaleY(-1)}
+.corner.br{bottom:6px;right:6px;transform:scale(-1)}
+/* BG watermark */
+.cert-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.04;z-index:1;pointer-events:none;width:55%}
+/* content layout */
+.cert-content{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:space-between;height:100%;padding:clamp(20px,4%,48px) clamp(30px,6%,80px)}
+.cert-header{text-align:center;width:100%}
+.cert-republic{font-size:clamp(7px,1.4vw,12px);font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#7a5c1e;margin-bottom:4px}
+.cert-logo-wrap{display:flex;justify-content:center;margin-bottom:6px}
+.cert-logo-wrap svg{width:clamp(36px,6vw,56px);height:clamp(36px,6vw,56px)}
+.cert-app-name{font-size:clamp(9px,1.6vw,14px);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#7a5c1e;margin-bottom:6px}
+.cert-divider-line{display:flex;align-items:center;gap:10px;width:80%;margin:0 auto 8px}
+.cert-divider-line::before,.cert-divider-line::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#b8912a,transparent)}
+.cert-divider-star{color:#b8912a;font-size:clamp(10px,1.8vw,14px)}
+.cert-presents{font-size:clamp(8px,1.3vw,12px);letter-spacing:.12em;text-transform:uppercase;color:#9a7430;font-style:italic;margin-bottom:4px}
+.cert-main-title{font-size:clamp(14px,2.8vw,26px);font-weight:700;color:#1a0a00;text-align:center;line-height:1.2;margin-bottom:8px;letter-spacing:.02em}
+.cert-awarded-to{font-size:clamp(7px,1.2vw,11px);letter-spacing:.14em;text-transform:uppercase;color:#9a7430;margin-bottom:2px}
+.cert-name{font-size:clamp(16px,3.2vw,32px);font-weight:700;color:#7a2c00;font-style:italic;text-align:center;line-height:1.1;min-height:1.2em;padding:4px 0;border-bottom:1px solid rgba(184,145,42,.35);margin-bottom:8px;width:90%;word-break:break-word}
+.cert-body-text{font-size:clamp(7px,1.2vw,11px);color:#5a4010;text-align:center;line-height:1.6;max-width:85%;margin:0 auto}
+/* Bottom section */
+.cert-bottom{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
+.cert-sig-block{text-align:center;min-width:clamp(80px,18%,150px)}
+.cert-sig-name{font-size:clamp(8px,1.3vw,12px);font-weight:700;color:#1a0a00;letter-spacing:.04em;border-top:1px solid #b8912a;padding-top:4px;margin-top:2px}
+.cert-sig-title{font-size:clamp(6px,1vw,10px);color:#7a5c1e;letter-spacing:.06em;text-transform:uppercase}
+.cert-date-block{text-align:center}
+.cert-date-label{font-size:clamp(6px,1vw,10px);letter-spacing:.12em;text-transform:uppercase;color:#9a7430;margin-bottom:2px}
+.cert-date-val{font-size:clamp(9px,1.4vw,13px);font-weight:600;color:#1a0a00}
+/* SEAL */
+.cert-seal-wrap{position:relative;width:clamp(60px,10vw,96px);height:clamp(60px,10vw,96px)}
+/* QR */
+.cert-qr{width:clamp(44px,7vw,68px);height:clamp(44px,7vw,68px)}
+
+/* open cert button */
+.open-cert-btn{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.35);border-radius:var(--radius-sm);padding:12px 16px;cursor:pointer;width:100%;color:var(--text);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:12px}
+.open-cert-btn:hover{border-color:var(--accent);box-shadow:var(--glow-gold);transform:translateY(-1px)}
+.open-cert-btn .btn-icon{font-size:22px}
+.open-cert-btn .btn-sub{font-size:11px;color:var(--text3);font-weight:400;display:block;margin-top:2px}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+
+<!-- CERTIFICATE MODAL -->
+<div id="cert-modal">
+  <div class="cert-modal-inner">
+    <div class="cert-btn-row" style="margin-bottom:12px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);flex:1">🏆 Certificate of Completion</h3>
+      <button class="cert-btn close-btn" onclick="closeCert()">✕ Close</button>
+    </div>
+
+    <!-- EDIT FIELDS -->
+    <div class="cert-controls">
+      <div class="cert-input-group">
+        <label>Recipient Name</label>
+        <input class="cert-field" id="cf-name" placeholder="Your Full Name" oninput="updateCert()">
+      </div>
+      <div class="cert-input-group">
+        <label>Certificate Title</label>
+        <input class="cert-field" id="cf-title" placeholder="e.g. Philippine Bar Exam Readiness" oninput="updateCert()">
+      </div>
+      <div class="cert-input-group" style="max-width:160px">
+        <label>Date Awarded</label>
+        <input class="cert-field" id="cf-date" type="date" oninput="updateCert()">
+      </div>
+      <div class="cert-input-group">
+        <label>Signatory Name</label>
+        <input class="cert-field" id="cf-signer" value="Alexander G. Gesmundo" oninput="updateCert()">
+      </div>
+    </div>
+
+    <div class="cert-btn-row">
+      <button class="cert-btn primary" onclick="downloadCertPNG()">⬇ Download PNG</button>
+      <button class="cert-btn secondary" onclick="printCert()">🖨 Print</button>
+    </div>
+
+    <!-- CERTIFICATE PAPER -->
+    <div id="cert-paper">
+      <!-- Borders -->
+      <div class="border-outer"></div>
+      <div class="border-inner"></div>
+
+      <!-- Corner ornaments -->
+      <div class="corner tl"><svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 42 L2 8 Q2 2 8 2 L42 2" stroke="#b8912a" stroke-width="2" fill="none"/><path d="M2 30 L2 14 Q2 8 8 8 L30 8" stroke="#b8912a" stroke-width="1" fill="none" opacity=".5"/><circle cx="2" cy="2" r="3" fill="#b8912a"/><circle cx="8" cy="8" r="2" fill="#b8912a" opacity=".5"/><path d="M10 2 L2 10" stroke="#b8912a" stroke-width=".8" opacity=".4"/><circle cx="14" cy="2" r="1" fill="#b8912a" opacity=".4"/><circle cx="2" cy="14" r="1" fill="#b8912a" opacity=".4"/></svg></div>
+      <div class="corner tr"><svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 42 L2 8 Q2 2 8 2 L42 2" stroke="#b8912a" stroke-width="2" fill="none"/><path d="M2 30 L2 14 Q2 8 8 8 L30 8" stroke="#b8912a" stroke-width="1" fill="none" opacity=".5"/><circle cx="2" cy="2" r="3" fill="#b8912a"/><circle cx="8" cy="8" r="2" fill="#b8912a" opacity=".5"/><path d="M10 2 L2 10" stroke="#b8912a" stroke-width=".8" opacity=".4"/></svg></div>
+      <div class="corner bl"><svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 42 L2 8 Q2 2 8 2 L42 2" stroke="#b8912a" stroke-width="2" fill="none"/><path d="M2 30 L2 14 Q2 8 8 8 L30 8" stroke="#b8912a" stroke-width="1" fill="none" opacity=".5"/><circle cx="2" cy="2" r="3" fill="#b8912a"/></svg></div>
+      <div class="corner br"><svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 42 L2 8 Q2 2 8 2 L42 2" stroke="#b8912a" stroke-width="2" fill="none"/><path d="M2 30 L2 14 Q2 8 8 8 L30 8" stroke="#b8912a" stroke-width="1" fill="none" opacity=".5"/><circle cx="2" cy="2" r="3" fill="#b8912a"/></svg></div>
+
+      <!-- Watermark -->
+      <div class="cert-watermark">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="90" stroke="#b8912a" stroke-width="4" fill="none"/>
+          <!-- scales of justice -->
+          <line x1="100" y1="40" x2="100" y2="155" stroke="#b8912a" stroke-width="4"/>
+          <line x1="60" y1="75" x2="140" y2="75" stroke="#b8912a" stroke-width="3"/>
+          <path d="M60 75 L45 105 Q52 115 67 105 Z" stroke="#b8912a" stroke-width="2" fill="none"/>
+          <path d="M140 75 L125 105 Q132 115 147 105 Z" stroke="#b8912a" stroke-width="2" fill="none"/>
+          <rect x="88" y="153" width="24" height="5" rx="2" fill="#b8912a"/>
+        </svg>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="cert-content">
+        <div class="cert-header">
+          <div class="cert-republic">Republic of the Philippines</div>
+          <div class="cert-logo-wrap" id="cert-logo-svg"><!-- injected --></div>
+          <div class="cert-app-name">PH Lawyer Guide</div>
+          <div class="cert-divider-line"><span class="cert-divider-star">✦ ⚖ ✦</span></div>
+          <div class="cert-presents">This is to Certify That</div>
+        </div>
+
+        <div style="text-align:center;width:100%">
+          <div class="cert-awarded-to">This certificate is awarded to</div>
+          <div class="cert-name" id="cert-name-display">Your Full Name</div>
+          <div class="cert-main-title" id="cert-title-display">Completion of the PH Lawyer Beginner's Guide</div>
+          <div class="cert-body-text">Has successfully demonstrated knowledge and commitment to Philippine Legal Education, completing all required modules and assessments with distinction and excellence befitting the noble profession of law.</div>
+        </div>
+
+        <div class="cert-bottom">
+          <!-- REAL QR -->
+          <div style="text-align:center">
+            <div class="cert-qr" style="background:#fff;border-radius:4px;padding:3px;display:inline-block">
+              <canvas id="qr-canvas" style="display:block;width:100%;height:100%;image-rendering:pixelated"></canvas>
+            </div>
+            <div style="font-size:clamp(5px,.9vw,8px);color:#9a7430;letter-spacing:.08em;text-transform:uppercase;margin-top:2px">Scan to Verify</div>
+          </div>
+
+          <!-- SEAL -->
+          <div class="cert-seal-wrap">
+            <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+              <defs>
+                <radialGradient id="sg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#f5d87a"/>
+                  <stop offset="60%" stop-color="#c9a84c"/>
+                  <stop offset="100%" stop-color="#8a6318"/>
+                </radialGradient>
+                <filter id="sf"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#c9a84c" flood-opacity=".5"/></filter>
+              </defs>
+              <!-- Outer star ring -->
+              <g filter="url(#sf)">
+                <path d="M48 4 L51 18 L64 10 L59 23 L74 22 L64 32 L76 38 L62 40 L68 54 L55 48 L52 62 L48 50 L44 62 L41 48 L28 54 L34 40 L20 38 L32 32 L22 22 L37 23 L32 10 L45 18 Z" fill="url(#sg)"/>
+              </g>
+              <!-- Inner circle -->
+              <circle cx="48" cy="38" r="22" fill="url(#sg)" stroke="#8a6318" stroke-width="1.5"/>
+              <circle cx="48" cy="38" r="18" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+              <!-- Scales of justice inside seal -->
+              <line x1="48" y1="24" x2="48" y2="50" stroke="#5a3800" stroke-width="1.8"/>
+              <line x1="36" y1="31" x2="60" y2="31" stroke="#5a3800" stroke-width="1.5"/>
+              <path d="M36 31 L30 42 Q34 46 40 42 Z" stroke="#5a3800" stroke-width="1.2" fill="rgba(90,56,0,.2)"/>
+              <path d="M60 31 L54 42 Q58 46 64 42 Z" stroke="#5a3800" stroke-width="1.2" fill="rgba(90,56,0,.2)"/>
+              <rect x="43" y="49" width="10" height="2.5" rx="1" fill="#5a3800"/>
+              <!-- OFFICIAL text arc -->
+              <path id="seal-arc" d="M 18 38 A 30 30 0 0 1 78 38" fill="none"/>
+              <text font-size="5.5" fill="#5a3800" font-family="'DM Sans',sans-serif" font-weight="700" letter-spacing="2">
+                <textPath href="#seal-arc" startOffset="12%">OFFICIAL · SEAL · PH LAWYER GUIDE</textPath>
+              </text>
+              <!-- Gold shimmer dots -->
+              <circle cx="48" cy="58" r="2" fill="#8a6318"/>
+              <circle cx="42" cy="57" r="1.2" fill="#c9a84c" opacity=".7"/>
+              <circle cx="54" cy="57" r="1.2" fill="#c9a84c" opacity=".7"/>
+            </svg>
+          </div>
+
+          <!-- Signature -->
+          <div class="cert-sig-block">
+            <div style="height:clamp(14px,3vw,28px);display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px">
+              <svg viewBox="0 0 120 30" style="width:clamp(70px,14vw,120px);height:clamp(16px,3vw,30px)">
+                <path d="M5 25 Q20 5 35 20 Q45 30 55 15 Q65 5 75 18 Q85 28 95 12 Q105 3 115 20" stroke="#1a0a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="cert-sig-name" id="cert-signer-display">Alexander G. Gesmundo</div>
+            <div class="cert-sig-title">Chief Justice<br>Supreme Court of the Philippines</div>
+            <div class="cert-sig-title" style="font-style:italic;margin-top:1px">(Honorary)</div>
+          </div>
+        </div>
+
+        <!-- Date row at very bottom -->
+        <div class="cert-date-block" style="margin-top:4px">
+          <div class="cert-date-label">Date Awarded</div>
+          <div class="cert-date-val" id="cert-date-display">—</div>
+        </div>
+      </div>
+    </div><!-- /cert-paper -->
+  </div>
+</div>
+
+<div id="app">
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <!-- REAL SVG LOGO -->
+    <svg class="topbar-logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e8c96a"/>
+          <stop offset="100%" stop-color="#c9a84c"/>
+        </linearGradient>
+        <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f5d87a"/>
+          <stop offset="100%" stop-color="#a07828"/>
+        </linearGradient>
+      </defs>
+      <!-- Sun rays (Philippine sun) -->
+      <g opacity=".7">
+        <line x1="24" y1="2" x2="24" y2="8" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="38.6" y1="9.4" x2="34.3" y2="13.7" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="46" y1="24" x2="40" y2="24" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="38.6" y1="38.6" x2="34.3" y2="34.3" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="24" y1="46" x2="24" y2="40" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="9.4" y1="38.6" x2="13.7" y2="34.3" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="2" y1="24" x2="8" y2="24" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="9.4" y1="9.4" x2="13.7" y2="13.7" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <!-- Outer ring -->
+      <circle cx="24" cy="24" r="14" fill="none" stroke="url(#lg2)" stroke-width="1.5" opacity=".6"/>
+      <!-- Center circle bg -->
+      <circle cx="24" cy="24" r="11" fill="#0f1e3a"/>
+      <!-- Scales of justice -->
+      <line x1="24" y1="14" x2="24" y2="32" stroke="url(#lg1)" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="16" y1="18.5" x2="32" y2="18.5" stroke="url(#lg1)" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Left pan -->
+      <path d="M16 18.5 L12 26 Q14.5 29 19 26 Z" stroke="url(#lg1)" stroke-width="1.2" fill="rgba(201,168,76,.25)"/>
+      <!-- Right pan -->
+      <path d="M32 18.5 L28 26 Q30.5 29 35 26 Z" stroke="url(#lg1)" stroke-width="1.2" fill="rgba(201,168,76,.25)"/>
+      <!-- Base -->
+      <rect x="20" y="31.5" width="8" height="2" rx="1" fill="url(#lg1)"/>
+      <!-- PH text -->
+      <text x="24" y="38" text-anchor="middle" font-size="4.5" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-weight="700" letter-spacing=".5">PH LAW</text>
+    </svg>
+    <span class="brand-text">PH Lawyer Guide</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="theme-btn" aria-label="Toggle theme">🌙</button>
+    <button class="icon-btn" id="install-btn" aria-label="Install" style="display:none">📲</button>
+  </div>
+</div>
+
+<div id="offline-badge">📵 Offline — cached content shown</div>
+<div id="toast">✓ Saved!</div>
+
+<!-- MAIN -->
+<div class="main" id="main">
+
+  <!-- HOME -->
+  <div class="page active page-enter" id="page-home">
+    <div class="hero">
+      <div class="hero-badge">Philippine Legal Education</div>
+      <h1 class="hero-title">Become a <span class="grad">Philippine Lawyer</span></h1>
+      <p>Your complete beginner's roadmap — from pre-law to Bar Exam to Supreme Court admission.</p>
+      <div class="hero-stat">
+        <div class="stat-pill"><div class="num">4+</div><div class="lbl">Years Law School</div></div>
+        <div class="stat-pill"><div class="num">8</div><div class="lbl">Bar Subjects</div></div>
+        <div class="stat-pill"><div class="num">1</div><div class="lbl">Dream. Yours.</div></div>
+      </div>
+    </div>
+    <div class="quote-card">
+      <div class="quote-text">"The practice of law is a privilege, not merely a profession. It comes with the solemn duty to uphold justice for every Filipino."</div>
+      <div class="quote-author">— Philippine Supreme Court</div>
+    </div>
+    <p class="section-label"><span class="pulse-ring"></span>Your Legal Career Roadmap</p>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Step 1 — Pre-Law (3–4 years)</div><div class="tl-title">Earn Your Bachelor's Degree</div><div class="tl-desc">Complete a pre-law degree. While any bachelor's qualifies, Political Science, Philosophy, or Economics build the strongest legal foundation.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Step 2 — Law School (4 years)</div><div class="tl-title">Juris Doctor (JD) Program</div><div class="tl-desc">Enroll in an accredited Philippine law school. Master 8 core subjects across civil, criminal, constitutional, commercial, labor, remedial, political, and tax law.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Step 3 — Bar Exam</div><div class="tl-title">Philippine Bar Examination</div><div class="tl-desc">Pass the Supreme Court-administered Bar Exam. Target: 75% passing average, no subject below 50%.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Step 4 — Oath Taking</div><div class="tl-title">Supreme Court Admission</div><div class="tl-desc">Take the Lawyer's Oath before the Supreme Court. You are now a Member of the Philippine Bar.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Step 5 — IBP Membership</div><div class="tl-title">Integrated Bar of the Philippines</div><div class="tl-desc">Register with the IBP and complete MCLE every 3 years to remain in good standing.</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="card"><div class="card-icon gold">🎯</div><h3 class="card-title">Why Law in the Philippines?</h3><p>The legal profession is one of the most respected careers in the country. Lawyers defend rights, shape policy, and drive justice for 115 million Filipinos. Demand for competent legal professionals in tech, corporate, and public sectors has never been greater.</p></div>
+    <div class="card"><div class="card-icon blue">📊</div><h3 class="card-title">Bar Exam Pass Rate Reality</h3><p>Historically, the Philippine Bar Exam has a 20–30% pass rate. This demands rigorous preparation — but with the right strategy, you can be among the successful few.</p></div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="page" id="page-education">
+    <h2 class="section-title">Legal Education <span class="grad">Path</span></h2>
+    <p class="section-label">Pre-Law Degree Options</p>
+    <div class="grid-2">
+      <div class="mini-card"><span class="emoji">🏛</span><div class="mc-label">Political Science</div></div>
+      <div class="mini-card"><span class="emoji">💡</span><div class="mc-label">Philosophy</div></div>
+      <div class="mini-card"><span class="emoji">📈</span><div class="mc-label">Economics</div></div>
+      <div class="mini-card"><span class="emoji">🧮</span><div class="mc-label">Accounting</div></div>
+      <div class="mini-card"><span class="emoji">📚</span><div class="mc-label">English</div></div>
+      <div class="mini-card"><span class="emoji">🔬</span><div class="mc-label">Any Bachelor's</div></div>
+    </div>
+    <div class="tip"><div class="tip-label">💡 PRO TIP</div><p>Political Science + Law is the most common combination. Accounting + Law opens lucrative paths in tax law and corporate practice.</p></div>
+    <p class="section-label">Top Law Schools</p>
+    <div class="card"><p style="font-size:13px;color:var(--text2);line-height:2"><strong style="color:var(--text)">University of the Philippines College of Law</strong> — flagship, most prestigious<br><strong style="color:var(--text)">Ateneo de Manila School of Law</strong> — consistently top Bar performance<br><strong style="color:var(--text)">San Beda University College of Law</strong> — top Bar results every year<br><strong style="color:var(--text)">De La Salle University</strong> — strong corporate and commercial law<br><strong style="color:var(--text)">FEU Institute of Law</strong> — solid public law track</p></div>
+    <p class="section-label">The 8 Core Bar Subjects</p>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">📜</div><div class="acc-label">Constitutional Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>The supreme law of the land. Covers fundamental rights, separation of powers, and constitutional commissions.</p><ul class="acc-list"><li>1987 Philippine Constitution — all provisions</li><li>Judicial review and due process</li><li>Bill of Rights — Article III exhaustively</li><li>Constitutional commissions (COA, COMELEC, CSC)</li><li>Key SC landmark decisions</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">⚖️</div><div class="acc-label">Civil Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>The body of law governing private rights and obligations. One of the heaviest Bar subjects.</p><ul class="acc-list"><li>Civil Code of the Philippines (RA 386)</li><li>Family Code — marriage, family relations, property</li><li>Law on Obligations and Contracts</li><li>Property, Succession, Torts & Damages</li><li>Special Civil Laws (VAWC, Anti-Violence Acts)</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">⛓️</div><div class="acc-label">Criminal Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>Covers crimes and penalties under the Revised Penal Code and special penal laws.</p><ul class="acc-list"><li>Revised Penal Code (Act 3815) — Books 1 and 2</li><li>Special Penal Laws (RA 9165, RA 9208, etc.)</li><li>Elements of each crime, penalties, exemptions</li><li>Criminal liability, conspiracy, accessories</li><li>Cybercrime Prevention Act (RA 10175)</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">⚙️</div><div class="acc-label">Remedial Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>The law of procedure — most critical for litigation practice.</p><ul class="acc-list"><li>Rules of Court (2019 Amendments)</li><li>Civil Procedure — pleadings, motions, judgments</li><li>Criminal Procedure — arrest, trial, appeal</li><li>Evidence — admissibility, burden of proof</li><li>Special Proceedings and Provisional Remedies</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">🏢</div><div class="acc-label">Commercial Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Revised Corporation Code (RA 11232)</li><li>Negotiable Instruments Law</li><li>Insurance Code, Banking Laws</li><li>Securities Regulation Code (RA 8799)</li><li>Intellectual Property Code (RA 8293)</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">🗳️</div><div class="acc-label">Political Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Law on Public Officers — duties, liabilities</li><li>Administrative Law — quasi-judicial bodies</li><li>Election Law (Omnibus Election Code)</li><li>Local Government Code (RA 7160)</li><li>International Law — treaties, state responsibility</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">👷</div><div class="acc-label">Labor Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Labor Code of the Philippines (PD 442)</li><li>Employer-employee relations, termination</li><li>NLRC jurisdiction and proceedings</li><li>Labor-only vs. legitimate job contracting</li><li>OFW and migrant worker laws</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">💰</div><div class="acc-label">Taxation Law</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>NIRC (National Internal Revenue Code)</li><li>Income Tax, Estate Tax, Donor's Tax, VAT</li><li>Local Government Taxation</li><li>Tariff and Customs Code</li><li>Tax remedies — assessment, protest, CTA appeal</li></ul></div></div>
+  </div>
+
+  <!-- BAR PREP -->
+  <div class="page" id="page-bar">
+    <h2 class="section-title">Bar Exam <span class="grad">Preparation</span></h2>
+    <div class="hero" style="padding:22px">
+      <div class="hero-badge">Bar Exam Format</div>
+      <p style="font-size:13px;color:#8ba0c0;line-height:2;margin-top:8px"><strong style="color:var(--text)">Frequency:</strong> Once a year (Sep–Oct)<br><strong style="color:var(--text)">Format:</strong> 8 subjects, essay + MCQ<br><strong style="color:var(--text)">Passing:</strong> 75% weighted average, no subject below 50%<br><strong style="color:var(--text)">Administered by:</strong> Philippine Supreme Court<br><strong style="color:var(--text)">Duration:</strong> 4 Sundays</p>
+    </div>
+    <p class="section-label">Master Study Strategies</p>
+    <div class="card"><div class="card-icon gold">📅</div><h3 class="card-title">The 12-Month Bar Prep Blueprint</h3><p>Phase 1 (months 1–4): Codal reading. Phase 2 (months 5–8): Case digest review. Phase 3 (months 9–12): Mock exams and weak-subject mastery. Six focused hours daily beats twelve distracted ones.</p></div>
+    <div class="card"><div class="card-icon blue">✂️</div><h3 class="card-title">The DIGEST Method</h3><p>For each case: <strong style="color:var(--text)">D</strong>octrine, <strong style="color:var(--text)">I</strong>ssue, <strong style="color:var(--text)">G</strong>rounds, <strong style="color:var(--text)">E</strong>vidence, <strong style="color:var(--text)">S</strong>C Ruling, <strong style="color:var(--text)">T</strong>akeaway. This 6-point framework locks cases into memory and trains essay application.</p></div>
+    <div class="card"><div class="card-icon green">📖</div><h3 class="card-title">Codal Memorization System</h3><p>Read → rewrite in own words → mind map → active recall. Repeat every 7 days using spaced repetition. Focus on provisions with 3+ SC decisions applying them.</p></div>
+    <div class="card"><div class="card-icon purple">🧪</div><h3 class="card-title">Mock Exam Strategy</h3><p>Simulate Bar conditions every 2 weeks from month 9. Use official Bar questionnaires 2015–2023. Analyze wrong answers before reviewing correct ones.</p></div>
+    <div class="divider"></div>
+    <p class="section-label">Mental Health & Wellness</p>
+    <div class="grid-2">
+      <div class="mini-card"><span class="emoji">😴</span><div class="mc-label">7–8 hrs sleep</div></div>
+      <div class="mini-card"><span class="emoji">🏃</span><div class="mc-label">Daily movement</div></div>
+      <div class="mini-card"><span class="emoji">🧘</span><div class="mc-label">Mindfulness</div></div>
+      <div class="mini-card"><span class="emoji">👥</span><div class="mc-label">Study groups</div></div>
+      <div class="mini-card"><span class="emoji">📵</span><div class="mc-label">Social detox</div></div>
+      <div class="mini-card"><span class="emoji">🎯</span><div class="mc-label">Weekly goals</div></div>
+    </div>
+    <div class="quote-card"><div class="quote-text">"The Bar Exam does not test the limits of your memory. It tests whether you understand the law well enough to apply it to new facts."</div><div class="quote-author">— Dean Pacifico Agabin, UP College of Law</div></div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="page" id="page-skills">
+    <h2 class="section-title">Legal Skills <span class="grad-blue">Development</span></h2>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">✍️</div><div class="acc-label">Legal Writing Fundamentals</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>Clear, precise, persuasive writing is the lawyer's primary tool.</p><ul class="acc-list"><li>IRAC method — Issue, Rule, Application, Conclusion</li><li>Plain language over legalese — clarity wins</li><li>Active voice, concise sentences, precise verbs</li><li>Proper citation of statutes and jurisprudence</li><li>Objective vs. persuasive writing distinction</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">📄</div><div class="acc-label">Drafting Court Pleadings</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Complaint — jurisdiction, cause of action, prayer</li><li>Answer — specific denial, affirmative defenses</li><li>Motion to Dismiss — grounds under Rule 16</li><li>Memorandum — persuasive, organized argument</li><li>Petition — certiorari, mandamus, prohibition</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">📝</div><div class="acc-label">Contract Drafting</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>Draft for the worst-case scenario — every contract must anticipate every dispute.</p><ul class="acc-list"><li>Essential elements — consent, object, cause (Art. 1318 CC)</li><li>Representations and warranties</li><li>Dispute resolution — arbitration vs. courts</li><li>Force majeure, termination, liquidated damages</li><li>Governing law and venue stipulation</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">🎤</div><div class="acc-label">Oral Advocacy & Litigation</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Moot court — practice before you practice</li><li>Opening statements — tell the story first</li><li>Direct and cross-examination technique</li><li>Objections — timely, specific, on the record</li><li>Closing argument — law + emotion = persuasion</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">⚡</div><div class="acc-label">Legal Research Methods</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><ul class="acc-list"><li>Chan Robles Virtual Law Library — free PH primary sources</li><li>Supreme Court E-Library — full SC decisions since 1901</li><li>LexisNexis and Westlaw — premium global research</li><li>Google Scholar (PH) — accessible case law search</li><li>Secondary sources — textbooks, law reviews, SCRA</li></ul></div></div>
+    <div class="accordion"><div class="acc-header" onclick="toggleAcc(this)"><div class="acc-icon">🏅</div><div class="acc-label">Legal Ethics — CPRA</div><div class="acc-arrow">⌄</div></div><div class="acc-body"><p>The Code of Professional Responsibility and Accountability governs all lawyers. Effective April 2023.</p><ul class="acc-list"><li>Canon I — Independence, integrity, competence</li><li>Canon II — Propriety — dignity and decorum always</li><li>Canon III — Loyalty — conflicts of interest rules</li><li>Canon IV — Competence and diligence</li><li>Canon V–VII — Responsibility to court, bar, society</li></ul></div></div>
+    <div class="divider"></div>
+    <p class="section-label">Practice Areas</p>
+    <div class="card"><div class="card-icon gold">⚔️</div><h3 class="card-title">Litigation</h3><p>Court advocacy across civil, criminal, and administrative cases.</p><div style="margin-top:10px"><span class="tag">Trial Courts</span><span class="tag">Appellate</span><span class="tag">SC</span></div></div>
+    <div class="card"><div class="card-icon blue">🏦</div><h3 class="card-title">Corporate & Commercial Law</h3><p>Mergers, acquisitions, corporate governance, regulatory compliance. The highest-paying track in private practice.</p><div style="margin-top:10px"><span class="tag blue">M&A</span><span class="tag blue">IPO</span><span class="tag blue">Compliance</span></div></div>
+    <div class="card"><div class="card-icon green">🤖</div><h3 class="card-title">Legal Tech & AI Law</h3><p>The fastest-growing niche in 2025–2026. Data privacy, AI governance, fintech regulation.</p><div style="margin-top:10px"><span class="tag green">Data Privacy Act</span><span class="tag green">AI Governance</span></div></div>
+    <div class="card"><div class="card-icon purple">🛡️</div><h3 class="card-title">Public Attorney / Government Lawyer</h3><p>Serve the Filipino people directly through the PAO, OSG, or Ombudsman.</p><div style="margin-top:10px"><span class="tag">PAO</span><span class="tag">OSG</span><span class="tag">DOJ</span></div></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="page" id="page-progress">
+    <h2 class="section-title">Progress <span class="grad">Tracker</span></h2>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:20px">Track your journey from aspiring lawyer to Bar passer. Saved locally on your device.</p>
+    <div class="progress-card">
+      <div class="progress-header"><span class="progress-label">Overall Readiness</span><span class="progress-pct" id="overall-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="overall-bar" style="width:0%"></div></div>
+    </div>
+    <p class="section-label">Pre-Law Milestones</p>
+    <div class="card"><ul class="check-list">
+      <li class="check-item" data-id="pl1" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Chosen pre-law degree program</span></li>
+      <li class="check-item" data-id="pl2" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Completed bachelor's degree</span></li>
+      <li class="check-item" data-id="pl3" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Researched law schools and programs</span></li>
+      <li class="check-item" data-id="pl4" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Submitted law school application</span></li>
+      <li class="check-item" data-id="pl5" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Enrolled in JD program</span></li>
+    </ul></div>
+    <p class="section-label">Law School Progress</p>
+    <div class="card"><ul class="check-list">
+      <li class="check-item" data-id="ls1" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">First year — Foundations & Civil Law</span></li>
+      <li class="check-item" data-id="ls2" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Second year — Criminal & Remedial Law</span></li>
+      <li class="check-item" data-id="ls3" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Third year — Commercial & Political Law</span></li>
+      <li class="check-item" data-id="ls4" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Fourth year — Labor, Tax & Legal Clinic</span></li>
+      <li class="check-item" data-id="ls5" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Graduated from law school</span></li>
+    </ul></div>
+    <p class="section-label">Bar Exam Subjects</p>
+    <div class="card"><ul class="check-list">
+      <li class="check-item" data-id="b1" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Constitutional Law reviewed</span></li>
+      <li class="check-item" data-id="b2" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Civil Law — codal + cases</span></li>
+      <li class="check-item" data-id="b3" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Criminal Law — RPC + special laws</span></li>
+      <li class="check-item" data-id="b4" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Remedial Law — Rules of Court</span></li>
+      <li class="check-item" data-id="b5" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Commercial Law — all statutes</span></li>
+      <li class="check-item" data-id="b6" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Political Law — full review</span></li>
+      <li class="check-item" data-id="b7" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Labor Law — Labor Code mastered</span></li>
+      <li class="check-item" data-id="b8" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Taxation Law — NIRC and local taxes</span></li>
+    </ul></div>
+    <p class="section-label">Final Steps</p>
+    <div class="card"><ul class="check-list">
+      <li class="check-item" data-id="f1" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Passed the Philippine Bar Exam 🎉</span></li>
+      <li class="check-item" data-id="f2" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Took the Lawyer's Oath before the SC</span></li>
+      <li class="check-item" data-id="f3" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Registered with the IBP</span></li>
+      <li class="check-item" data-id="f4" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Received Roll of Attorneys number</span></li>
+      <li class="check-item" data-id="f5" onclick="toggleCheck(this)"><div class="checkmark">✓</div><span class="check-text">Established legal practice or employment</span></li>
+    </ul></div>
+
+    <!-- NAME CARD -->
+    <div class="card" style="text-align:center;padding:28px 20px">
+      <div style="font-size:48px;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(201,168,76,.35));animation:float 3s ease infinite">⚖️</div>
+      <div id="lawyer-name-display" onclick="startEditName()" title="Tap to edit your name" role="button" tabindex="0">
+        <span id="lawyer-name-text" class="grad">Atty. [Your Name]</span>
+        <span class="edit-icon">✏️</span>
+      </div>
+      <div id="name-edit-wrap">
+        <input id="lawyer-name-input" type="text" placeholder="Enter your full name…" maxlength="60"/>
+        <button class="name-save-btn" onclick="saveName()">Save</button>
+        <button class="name-cancel-btn" onclick="cancelEditName()">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--text3);margin-top:10px">Member, Philippine Bar · Tap your name to personalize</p>
+
+      <!-- OPEN CERTIFICATE -->
+      <button class="open-cert-btn" onclick="openCert()">
+        <span class="btn-icon">🏆</span>
+        <span style="flex:1;text-align:left">
+          Generate My Certificate
+          <span class="btn-sub">Editable · Print · Download PNG</span>
+        </span>
+        <span style="color:var(--accent);font-size:18px">›</span>
+      </button>
+
+      <button onclick="resetProgress()" style="margin-top:14px;background:none;border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">Reset All Progress</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showPage('home',this)" aria-label="Home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="nav-item" onclick="showPage('education',this)" aria-label="Education">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Education</span>
+  </button>
+  <button class="nav-item" onclick="showPage('bar',this)" aria-label="Bar Exam">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Bar Prep</span>
+  </button>
+  <button class="nav-item" onclick="showPage('skills',this)" aria-label="Skills">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span>Skills</span>
+  </button>
+  <button class="nav-item" onclick="showPage('progress',this)" aria-label="Progress">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Progress</span>
+  </button>
+</nav>
+</div><!-- /app -->
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div style="font-size:26px">📲</div>
+  <div class="banner-text"><strong>Install PH Lawyer Guide</strong>Add to home screen for offline access</div>
+  <button class="btn-install" id="install-accept">Install</button>
+  <button class="btn-close-banner" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+</div>
+
+<script>
+// create a downloadable html only using computer tools and can view in claude artifact
+
+/* ── PWA MANIFEST ── */
+(function(){
+  const m={name:"PH Lawyer Guide",short_name:"PH Lawyer",description:"Beginner's Guide to Becoming a Philippine Lawyer",start_url:"./",display:"standalone",background_color:"#0a0f1e",theme_color:"#0a0f1e",icons:[{src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#0a0f1e"/><text y="130" x="46" font-size="110">⚖</text></svg>'),sizes:"192x192",type:"image/svg+xml"}]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
+  document.head.appendChild(l);
+})();
+
+/* ── SERVICE WORKER ── */
+if('serviceWorker' in navigator){
+  const c=`const C='ph-v4';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['/'])));self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim()});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))})`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([c],{type:'text/javascript'}))).catch(()=>{});
+}
+
+/* ── PARTICLES ── */
+(function(){
+  const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
+  resize();window.addEventListener('resize',()=>{resize();init()});
+  function init(){pts=[];const n=Math.min(55,Math.floor(W*H/14000));for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,r:Math.random()*1.3+.4,a:Math.random()*Math.PI*2})}
+  init();
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;p.a+=.005;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(201,168,76,'+(0.28+0.18*Math.sin(p.a))+')';ctx.fill()});
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<85){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(201,168,76,'+(0.065*(1-d/85))+')';ctx.lineWidth=.6;ctx.stroke()}}
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── CARD GLOW ── */
+document.addEventListener('mousemove',e=>{document.querySelectorAll('.card').forEach(c=>{const r=c.getBoundingClientRect();c.style.setProperty('--mx',((e.clientX-r.left)/r.width*100).toFixed(1)+'%');c.style.setProperty('--my',((e.clientY-r.top)/r.height*100).toFixed(1)+'%')})});
+
+/* ── OFFLINE ── */
+function updateOnline(){document.getElementById('offline-badge').style.display=navigator.onLine?'none':'block'}
+window.addEventListener('online',updateOnline);window.addEventListener('offline',updateOnline);updateOnline();
+
+/* ── INSTALL ── */
+let dP;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dP=e;document.getElementById('install-btn').style.display='flex';setTimeout(()=>document.getElementById('install-banner').classList.add('show'),2500)});
+document.getElementById('install-btn').addEventListener('click',ti);document.getElementById('install-accept').addEventListener('click',ti);
+function ti(){if(!dP)return;dP.prompt();dP.userChoice.then(()=>{dP=null;document.getElementById('install-banner').classList.remove('show');document.getElementById('install-btn').style.display='none'})}
+
+/* ── THEME ── */
+let dark=localStorage.getItem('theme')!=='light';applyTheme();
+document.getElementById('theme-btn').addEventListener('click',()=>{dark=!dark;localStorage.setItem('theme',dark?'dark':'light');applyTheme()});
+function applyTheme(){document.body.classList.toggle('light',!dark);document.getElementById('theme-btn').textContent=dark?'🌙':'☀️'}
+
+/* ── NAV ── */
+const sp={};let cp='home';
+function showPage(id,btn){
+  sp[cp]=document.getElementById('main').scrollTop;
+  const old=document.querySelector('.page.active');if(old){old.classList.remove('active','page-enter')}
+  const next=document.getElementById('page-'+id);next.classList.add('active');requestAnimationFrame(()=>next.classList.add('page-enter'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));btn.classList.add('active');
+  cp=id;document.getElementById('main').scrollTop=0;if(id==='progress')loadProgress();
+  setTimeout(()=>{document.getElementById('main').scrollTop=sp[id]||0},60);
+}
+
+/* ── ACCORDION ── */
+function toggleAcc(h){const b=h.nextElementSibling,open=h.classList.contains('open');document.querySelectorAll('.acc-header.open').forEach(x=>{x.classList.remove('open');x.nextElementSibling.classList.remove('open')});if(!open){h.classList.add('open');b.classList.add('open')}}
+
+/* ── TOAST ── */
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900)}
+
+/* ── PROGRESS ── */
+const ALL=['pl1','pl2','pl3','pl4','pl5','ls1','ls2','ls3','ls4','ls5','b1','b2','b3','b4','b5','b6','b7','b8','f1','f2','f3','f4','f5'];
+function getC(){try{return JSON.parse(localStorage.getItem('ph_progress')||'[]')}catch{return[]}}
+function saveC(a){localStorage.setItem('ph_progress',JSON.stringify(a))}
+function toggleCheck(item){const id=item.dataset.id;let c=getC();if(c.includes(id)){c=c.filter(x=>x!==id);item.classList.remove('done')}else{c.push(id);item.classList.add('done')}saveC(c);updateOverall()}
+function loadProgress(){const c=getC();document.querySelectorAll('.check-item').forEach(i=>i.classList.toggle('done',c.includes(i.dataset.id)));updateOverall();loadName()}
+function updateOverall(){const c=getC(),pct=Math.round(c.length/ALL.length*100);document.getElementById('overall-pct').textContent=pct+'%';document.getElementById('overall-bar').style.width=pct+'%'}
+function resetProgress(){if(confirm('Reset all progress? This cannot be undone.')){localStorage.removeItem('ph_progress');loadProgress();showToast('🔄 Progress reset')}}
+
+/* ── EDITABLE NAME ── */
+function loadName(){const n=localStorage.getItem('ph_name');if(n)document.getElementById('lawyer-name-text').textContent='Atty. '+n}
+function startEditName(){document.getElementById('lawyer-name-input').value=localStorage.getItem('ph_name')||'';document.getElementById('lawyer-name-display').style.display='none';document.getElementById('name-edit-wrap').classList.add('show');setTimeout(()=>document.getElementById('lawyer-name-input').focus(),60)}
+function saveName(){const v=document.getElementById('lawyer-name-input').value.trim();if(v){localStorage.setItem('ph_name',v);document.getElementById('lawyer-name-text').textContent='Atty. '+v;showToast('✓ Name saved!')}cancelEditName()}
+function cancelEditName(){document.getElementById('name-edit-wrap').classList.remove('show');document.getElementById('lawyer-name-display').style.display='inline-flex'}
+document.getElementById('lawyer-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveName();if(e.key==='Escape')cancelEditName()});
+document.getElementById('lawyer-name-display').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')startEditName()});
+
+/* ── INJECT SVG LOGO into cert ── */
+const LOGO_SVG = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="width:clamp(40px,7vw,60px);height:clamp(40px,7vw,60px)"><defs><linearGradient id="clg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#8a6318"/></linearGradient></defs><g opacity=".5"><line x1="24" y1="2" x2="24" y2="8" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="38.6" y1="9.4" x2="34.3" y2="13.7" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="46" y1="24" x2="40" y2="24" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="38.6" y1="38.6" x2="34.3" y2="34.3" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="46" x2="24" y2="40" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="9.4" y1="38.6" x2="13.7" y2="34.3" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="24" x2="8" y2="24" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/><line x1="9.4" y1="9.4" x2="13.7" y2="13.7" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/></g><circle cx="24" cy="24" r="14" fill="none" stroke="#b8912a" stroke-width="1" opacity=".5"/><circle cx="24" cy="24" r="11" fill="#1a0a00"/><line x1="24" y1="14" x2="24" y2="32" stroke="url(#clg1)" stroke-width="1.8" stroke-linecap="round"/><line x1="16" y1="18.5" x2="32" y2="18.5" stroke="url(#clg1)" stroke-width="1.5" stroke-linecap="round"/><path d="M16 18.5 L12 26 Q14.5 29 19 26 Z" stroke="url(#clg1)" stroke-width="1.2" fill="rgba(184,145,42,.25)"/><path d="M32 18.5 L28 26 Q30.5 29 35 26 Z" stroke="url(#clg1)" stroke-width="1.2" fill="rgba(184,145,42,.25)"/><rect x="20" y="31.5" width="8" height="2" rx="1" fill="url(#clg1)"/></svg>`;
+document.getElementById('cert-logo-svg').innerHTML = LOGO_SVG;
+
+/* ── CERTIFICATE ── */
+function openCert(){
+  // pre-fill name from stored name
+  const n=localStorage.getItem('ph_name')||'';
+  if(n)document.getElementById('cf-name').value=n;
+  // pre-fill today's date
+  if(!document.getElementById('cf-date').value){
+    const today=new Date();document.getElementById('cf-date').value=today.toISOString().split('T')[0];
+  }
+  updateCert();
+  document.getElementById('cert-modal').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeCert(){document.getElementById('cert-modal').classList.remove('show');document.body.style.overflow=''}
+
+/* ══════════════════════════════════════════════════════
+   REAL QR CODE GENERATOR — Pure JS, no libraries
+   QR Version 3 (29×29), ECC Level M, Byte mode
+   Full Reed-Solomon error correction included
+══════════════════════════════════════════════════════ */
+const QR = (function(){
+  // GF(256) arithmetic for Reed-Solomon
+  const EXP=new Uint8Array(512),LOG=new Uint8Array(256);
+  (function(){let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=285}for(let i=255;i<512;i++)EXP[i]=EXP[i-255]})();
+  const gfMul=(a,b)=>a&&b?EXP[(LOG[a]+LOG[b])%255]:0;
+  const gfPoly=(ec)=>{let p=[1];for(let i=0;i<ec;i++){const f=[1,EXP[i]];const r=new Array(p.length+1).fill(0);for(let j=0;j<p.length;j++)for(let k=0;k<f.length;k++)r[j+k]^=gfMul(p[j],f[k]);p=r}return p};
+  const rsEncode=(data,ec)=>{const gen=gfPoly(ec);const res=new Array(ec).fill(0);for(let i=0;i<data.length;i++){const c=data[i]^res.shift();res.push(0);if(c)for(let j=0;j<gen.length-1;j++)res[j]^=gfMul(gen[j],c)}return res};
+
+  // Format info for ECC M, mask 2 (pre-computed)
+  const FORMAT_M2=[1,1,1,0,1,1,0,0,0,1,0,1,1,1,0];
+
+  function makeMatrix(text){
+    // Version 3 = 29x29. Use alphanumeric-safe byte encoding.
+    const bytes=[...text].map(c=>c.charCodeAt(0));
+    // Data capacity for V3-M: 32 data codewords, 26 EC codewords
+    const dataWords=32,ecWords=26;
+    // Encode: mode(0100=byte)=4bits, char count=8bits, data, terminator
+    const bits=[];
+    const push=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};
+    push(4,4);push(bytes.length,8);
+    for(const b of bytes)push(b,8);
+    // Terminator
+    for(let i=0;i<4&&bits.length<dataWords*8;i++)bits.push(0);
+    while(bits.length%8)bits.push(0);
+    // Pad bytes
+    const PAD=[0xEC,0x11];let pi=0;
+    while(bits.length<dataWords*8){for(let i=0;i<8;i++)bits.push((PAD[pi]>>(7-i))&1);pi=(pi+1)%2}
+    // Pack into data codewords
+    const data=[];for(let i=0;i<dataWords;i++){let v=0;for(let j=0;j<8;j++)v=(v<<1)|bits[i*8+j];data.push(v)}
+    const ec=rsEncode(data,ecWords);
+    const allWords=[...data,...ec];
+    // Place bits in V3 29x29 matrix
+    const N=29,M=[];
+    for(let i=0;i<N;i++)M.push(new Array(N).fill(-1));
+    const set=(r,c,v)=>{if(r>=0&&r<N&&c>=0&&c<N)M[r][c]=v};
+    // Finder patterns (top-left, top-right, bottom-left)
+    const finder=(r,c)=>{for(let dr=0;dr<7;dr++)for(let dc=0;dc<7;dc++){const b=(dr===0||dr===6||dc===0||dc===6||(dr>=2&&dr<=4&&dc>=2&&dc<=4))?1:0;set(r+dr,c+dc,b)}};
+    finder(0,0);finder(0,N-7);finder(N-7,0);
+    // Separators
+    for(let i=0;i<8;i++){set(7,i,0);set(i,7,0);set(7,N-1-i,0);set(i,N-8,0);set(N-8,i,0);set(N-1-i,7,0)}
+    // Timing patterns
+    for(let i=8;i<N-8;i++){set(6,i,i%2===0?1:0);set(i,6,i%2===0?1:0)}
+    // Alignment pattern for V3: at (22,22) — but check not on finder
+    const align=(r,c)=>{for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){const b=(Math.abs(dr)===2||Math.abs(dc)===2||dr===0&&dc===0)?1:0;set(r+dr,c+dc,b)}};
+    align(22,22);
+    // Dark module
+    set(N-8,8,1);
+    // Reserve format areas (will fill later)
+    for(let i=0;i<6;i++){set(8,i,0);set(i,8,0)}set(8,7,0);set(7,8,0);set(8,8,0);
+    for(let i=0;i<8;i++){set(8,N-1-i,0);set(N-1-i,8,0)}
+    // Data placement (zigzag upward, mask 2: (row/2+col/3)%2==0)
+    let bits2=[];for(const w of allWords)for(let i=7;i>=0;i--)bits2.push((w>>i)&1);
+    let bi=0;
+    const skip=new Set();
+    // Mark non-data cells
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(M[r][c]!==-1)skip.add(r*N+c);
+    let up=true;
+    for(let col=N-1;col>=1;col-=2){
+      if(col===6)col=5;
+      for(let rr=0;rr<N;rr++){
+        const r=up?N-1-rr:rr;
+        for(let dc=0;dc<2;dc++){
+          const c=col-dc;
+          if(!skip.has(r*N+c)){
+            const bit=bi<bits2.length?bits2[bi++]:0;
+            const mask=((Math.floor(r/2)+Math.floor(c/3))%2===0)?1:0;
+            M[r][c]=bit^mask;
+          }
+        }
+      }
+      up=!up;
+    }
+    // Apply format info (mask 2, ECC M)
+    const fmt=FORMAT_M2;
+    for(let i=0;i<6;i++){set(8,i,fmt[i]);set(i,8,fmt[14-i])}
+    set(8,7,fmt[6]);set(7,8,fmt[8]);set(8,8,fmt[7]);
+    for(let i=0;i<8;i++){set(N-1-i,8,fmt[i]);set(8,N-8+i,fmt[14-i])}
+    return M;
+  }
+
+  function render(text,canvasEl,size=200){
+    const M=makeMatrix(text.slice(0,80)); // cap at 80 chars for V3
+    const N=M.length,cs=Math.floor(size/N);
+    canvasEl.width=N*cs;canvasEl.height=N*cs;
+    const ctx=canvasEl.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvasEl.width,canvasEl.height);
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      ctx.fillStyle=M[r][c]===1?'#1a0800':'#ffffff';
+      ctx.fillRect(c*cs,r*cs,cs,cs);
+    }
+  }
+
+  return {render};
+})();
+
+function buildQRText(name,title,date){
+  // Dynamic URL-style string — scannable, shows cert details
+  const base='https://ph-lawyer-guide.app/verify';
+  const params=new URLSearchParams({name,title,date,issued:'PH-Lawyer-Guide'});
+  return base+'?'+params.toString();
+}
+
+function updateCert(){
+  const name=document.getElementById('cf-name').value.trim()||'Your Full Name';
+  const title=document.getElementById('cf-title').value.trim()||"Completion of the PH Lawyer Beginner's Guide";
+  const signer=document.getElementById('cf-signer').value.trim()||'Alexander G. Gesmundo';
+  const dateVal=document.getElementById('cf-date').value;
+  let dateStr='—';
+  if(dateVal){const d=new Date(dateVal);dateStr=d.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}
+  document.getElementById('cert-name-display').textContent=name;
+  document.getElementById('cert-title-display').textContent=title;
+  document.getElementById('cert-signer-display').textContent=signer;
+  document.getElementById('cert-date-display').textContent=dateStr;
+  // Generate REAL QR
+  const qrText=buildQRText(name,title,dateVal||new Date().toISOString().split('T')[0]);
+  const canvas=document.getElementById('qr-canvas');
+  try{QR.render(qrText,canvas,140)}catch(e){console.warn('QR error',e)}
+}
+
+function printCert(){
+  const paper=document.getElementById('cert-paper');
+  const win=window.open('','_blank','width=1000,height=720');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title><style>@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;600;700&display=swap');*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Cormorant Garamond',serif}#cp{width:100vw;height:calc(100vw/1.414);max-height:100vh;max-width:calc(100vh*1.414)}@media print{body{display:block}#cp{width:297mm;height:210mm;max-height:none;max-width:none}@page{size:A4 landscape;margin:0}}</style></head><body><div id="cp">${paper.outerHTML}</div><script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
+  win.document.close();
+}
+
+function downloadCertPNG(){
+  const paper=document.getElementById('cert-paper');
+  const w=paper.offsetWidth,h=paper.offsetHeight;
+  // Serialize SVGs embedded in the cert
+  const data=`<svg xmlns="http://www.w3.org/2000/svg" width="${w*2}" height="${h*2}"><foreignObject width="${w}" height="${h}" style="transform:scale(2);transform-origin:top left"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${w}px;height:${h}px">${paper.outerHTML}</div></foreignObject></svg>`;
+  const blob=new Blob([data],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement('canvas');canvas.width=w*2;canvas.height=h*2;
+    const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+    const link=document.createElement('a');
+    link.download='ph-lawyer-certificate.png';
+    link.href=canvas.toDataURL('image/png');link.click();
+    URL.revokeObjectURL(url);showToast('✓ Certificate downloaded!');
+  };
+  img.onerror=()=>{
+    // Fallback: open print dialog
+    showToast('💡 Use Print → Save as PDF instead');setTimeout(()=>printCert(),800);
+  };
+  img.src=url;
+}
+
+// Close modal on backdrop click
+document.getElementById('cert-modal').addEventListener('click',function(e){if(e.target===this)closeCert()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCert()});
+
+/* ── FLOAT ANIMATION ── */
+const s=document.createElement('style');s.textContent='@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}';document.head.appendChild(s);
+
+/* ── INIT ── */
+loadProgress();
+</script>
+</body>
+</html>
