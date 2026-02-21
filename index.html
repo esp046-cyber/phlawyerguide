@@ -909,34 +909,312 @@ function updateCert(){
   try{QR.render(qrText,canvas,140)}catch(e){console.warn('QR error',e)}
 }
 
+/* ── CERTIFICATE RENDER ENGINE ──
+   Builds a fully self-contained HTML page with ALL styles inlined,
+   QR canvas converted to a data-URL image, and fonts embedded via
+   Google Fonts @import — works for both print and PNG export.
+─────────────────────────────────────────────────────────────────── */
+function buildCertHTML(forPrint){
+  // Grab live field values
+  const name  = document.getElementById('cert-name-display').textContent;
+  const title = document.getElementById('cert-title-display').textContent;
+  const signer= document.getElementById('cert-signer-display').textContent;
+  const date  = document.getElementById('cert-date-display').textContent;
+
+  // Convert the QR canvas to a PNG data-URL so it copies correctly
+  const qrCanvas = document.getElementById('qr-canvas');
+  const qrDataURL = qrCanvas.toDataURL('image/png');
+
+  // Corner SVG (reusable)
+  const cornerSVG = `<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 42 L2 8 Q2 2 8 2 L42 2" stroke="#b8912a" stroke-width="2" fill="none"/><path d="M2 30 L2 14 Q2 8 8 8 L30 8" stroke="#b8912a" stroke-width="1" fill="none" opacity=".5"/><circle cx="2" cy="2" r="3" fill="#b8912a"/><circle cx="8" cy="8" r="2" fill="#b8912a" opacity=".5"/><path d="M10 2 L2 10" stroke="#b8912a" stroke-width=".8" opacity=".4"/><circle cx="14" cy="2" r="1" fill="#b8912a" opacity=".4"/><circle cx="2" cy="14" r="1" fill="#b8912a" opacity=".4"/></svg>`;
+
+  const printExtra = forPrint ? `@media print{@page{size:A4 landscape;margin:0}body{margin:0}#wrap{width:297mm;height:210mm}}` : '';
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PH Lawyer Certificate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Cormorant Garamond',serif}
+#wrap{
+  width:min(100vw, calc(100vh * 1.414));
+  height:min(100vh, calc(100vw / 1.414));
+  position:relative;background:#fffdf5;overflow:hidden;
+  font-family:'Cormorant Garamond',serif;color:#1a0f00;
+}
+${printExtra}
+/* BORDERS */
+.bo{position:absolute;border:3px solid #b8912a;border-radius:6px}
+.bi{position:absolute;border:1px solid rgba(184,145,42,.4);border-radius:4px}
+/* CORNERS */
+.co{position:absolute;width:44px;height:44px}
+.co svg{width:100%;height:100%}
+.tl{top:6px;left:6px}.tr{top:6px;right:6px;transform:scaleX(-1)}.bl{bottom:6px;left:6px;transform:scaleY(-1)}.br{bottom:6px;right:6px;transform:scale(-1)}
+/* WATERMARK */
+.wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.04;width:55%;pointer-events:none}
+/* LAYOUT */
+.content{position:absolute;inset:22px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;z-index:4;padding:2% 6%}
+/* HEADER */
+.republic{font-size:clamp(8px,1.4vw,13px);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#7a5c1e;margin-bottom:4px;font-family:'DM Sans',sans-serif}
+.logo-wrap{margin-bottom:6px}
+.app-name{font-size:clamp(9px,1.6vw,14px);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#7a5c1e;margin-bottom:6px;font-family:'DM Sans',sans-serif}
+.div-line{display:flex;align-items:center;gap:10px;width:80%;margin:0 auto 8px}
+.div-line::before,.div-line::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#b8912a,transparent)}
+.div-star{color:#b8912a;font-size:14px}
+.presents{font-size:clamp(8px,1.3vw,12px);letter-spacing:.12em;text-transform:uppercase;color:#9a7430;font-style:italic;margin-bottom:4px;font-family:'DM Sans',sans-serif}
+/* BODY */
+.awarded-to{font-size:clamp(7px,1.2vw,11px);letter-spacing:.14em;text-transform:uppercase;color:#9a7430;margin-bottom:2px;font-family:'DM Sans',sans-serif}
+.recip-name{font-size:clamp(20px,4vw,42px);font-weight:700;color:#7a2c00;font-style:italic;text-align:center;line-height:1.1;border-bottom:1.5px solid rgba(184,145,42,.4);padding-bottom:4px;margin-bottom:8px;width:90%;word-break:break-word}
+.cert-title{font-size:clamp(12px,2.2vw,22px);font-weight:700;color:#1a0a00;text-align:center;line-height:1.2;margin-bottom:8px;letter-spacing:.02em}
+.body-text{font-size:clamp(8px,1.2vw,11px);color:#5a4010;text-align:center;line-height:1.7;max-width:85%;font-family:'Cormorant Garamond',serif}
+/* BOTTOM */
+.bottom{display:flex;align-items:flex-end;justify-content:space-between;width:100%;gap:12px}
+/* QR */
+.qr-block{text-align:center}
+.qr-img{width:clamp(52px,8vw,80px);height:clamp(52px,8vw,80px);display:block;image-rendering:pixelated;border:2px solid #e8d5a0;border-radius:4px;padding:2px;background:#fff}
+.qr-label{font-size:clamp(5px,.9vw,8px);color:#9a7430;letter-spacing:.08em;text-transform:uppercase;margin-top:3px;font-family:'DM Sans',sans-serif}
+/* SEAL */
+.seal-wrap{width:clamp(64px,10vw,100px);height:clamp(64px,10vw,100px)}
+.seal-wrap svg{width:100%;height:100%}
+/* SIGNATURE */
+.sig-block{text-align:center;min-width:clamp(90px,16%,160px)}
+.sig-line svg{display:block;margin:0 auto}
+.sig-name{font-size:clamp(8px,1.3vw,12px);font-weight:700;color:#1a0a00;letter-spacing:.04em;border-top:1.5px solid #b8912a;padding-top:4px;margin-top:2px;font-family:'DM Sans',sans-serif}
+.sig-title{font-size:clamp(6px,1vw,9px);color:#7a5c1e;letter-spacing:.05em;text-transform:uppercase;font-family:'DM Sans',sans-serif;line-height:1.4}
+/* DATE */
+.date-block{text-align:center;margin-top:4px}
+.date-label{font-size:clamp(6px,1vw,9px);letter-spacing:.12em;text-transform:uppercase;color:#9a7430;margin-bottom:2px;font-family:'DM Sans',sans-serif}
+.date-val{font-size:clamp(9px,1.4vw,13px);font-weight:600;color:#1a0a00}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="bo" style="inset:10px"></div>
+  <div class="bi" style="inset:16px"></div>
+  <div class="co tl">${cornerSVG}</div>
+  <div class="co tr">${cornerSVG}</div>
+  <div class="co bl">${cornerSVG}</div>
+  <div class="co br">${cornerSVG}</div>
+
+  <!-- Watermark -->
+  <div class="wm">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+      <circle cx="100" cy="100" r="90" stroke="#b8912a" stroke-width="4" fill="none"/>
+      <line x1="100" y1="40" x2="100" y2="155" stroke="#b8912a" stroke-width="4"/>
+      <line x1="60" y1="75" x2="140" y2="75" stroke="#b8912a" stroke-width="3"/>
+      <path d="M60 75 L45 105 Q52 115 67 105 Z" stroke="#b8912a" stroke-width="2" fill="none"/>
+      <path d="M140 75 L125 105 Q132 115 147 105 Z" stroke="#b8912a" stroke-width="2" fill="none"/>
+      <rect x="88" y="153" width="24" height="5" rx="2" fill="#b8912a"/>
+    </svg>
+  </div>
+
+  <div class="content">
+    <!-- HEADER -->
+    <div style="text-align:center;width:100%">
+      <div class="republic">Republic of the Philippines</div>
+      <div class="logo-wrap">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="width:clamp(40px,7vw,60px);height:clamp(40px,7vw,60px)">
+          <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#8a6318"/></linearGradient></defs>
+          <g opacity=".5">
+            <line x1="24" y1="2" x2="24" y2="8" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="38.6" y1="9.4" x2="34.3" y2="13.7" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="46" y1="24" x2="40" y2="24" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="38.6" y1="38.6" x2="34.3" y2="34.3" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="24" y1="46" x2="24" y2="40" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9.4" y1="38.6" x2="13.7" y2="34.3" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="2" y1="24" x2="8" y2="24" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9.4" y1="9.4" x2="13.7" y2="13.7" stroke="#b8912a" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <circle cx="24" cy="24" r="14" fill="none" stroke="#b8912a" stroke-width="1" opacity=".5"/>
+          <circle cx="24" cy="24" r="11" fill="#1a0a00"/>
+          <line x1="24" y1="14" x2="24" y2="32" stroke="url(#lg)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="16" y1="18.5" x2="32" y2="18.5" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M16 18.5 L12 26 Q14.5 29 19 26 Z" stroke="url(#lg)" stroke-width="1.2" fill="rgba(184,145,42,.25)"/>
+          <path d="M32 18.5 L28 26 Q30.5 29 35 26 Z" stroke="url(#lg)" stroke-width="1.2" fill="rgba(184,145,42,.25)"/>
+          <rect x="20" y="31.5" width="8" height="2" rx="1" fill="url(#lg)"/>
+        </svg>
+      </div>
+      <div class="app-name">PH Lawyer Guide</div>
+      <div class="div-line"><span class="div-star">✦ ⚖ ✦</span></div>
+      <div class="presents">This is to Certify That</div>
+    </div>
+
+    <!-- BODY -->
+    <div style="text-align:center;width:100%">
+      <div class="awarded-to">This certificate is awarded to</div>
+      <div class="recip-name">${name}</div>
+      <div class="cert-title">${title}</div>
+      <div class="body-text">Has successfully demonstrated knowledge and commitment to Philippine Legal Education, completing all required modules and assessments with distinction and excellence befitting the noble profession of law.</div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom">
+      <!-- QR -->
+      <div class="qr-block">
+        <img src="${qrDataURL}" class="qr-img" alt="QR Code">
+        <div class="qr-label">Scan to Verify</div>
+      </div>
+
+      <!-- SEAL -->
+      <div class="seal-wrap">
+        <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="sg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#f5d87a"/>
+              <stop offset="60%" stop-color="#c9a84c"/>
+              <stop offset="100%" stop-color="#8a6318"/>
+            </radialGradient>
+          </defs>
+          <path d="M48 4 L51 18 L64 10 L59 23 L74 22 L64 32 L76 38 L62 40 L68 54 L55 48 L52 62 L48 50 L44 62 L41 48 L28 54 L34 40 L20 38 L32 32 L22 22 L37 23 L32 10 L45 18 Z" fill="url(#sg)"/>
+          <circle cx="48" cy="38" r="22" fill="url(#sg)" stroke="#8a6318" stroke-width="1.5"/>
+          <circle cx="48" cy="38" r="18" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <line x1="48" y1="24" x2="48" y2="50" stroke="#5a3800" stroke-width="1.8"/>
+          <line x1="36" y1="31" x2="60" y2="31" stroke="#5a3800" stroke-width="1.5"/>
+          <path d="M36 31 L30 42 Q34 46 40 42 Z" stroke="#5a3800" stroke-width="1.2" fill="rgba(90,56,0,.2)"/>
+          <path d="M60 31 L54 42 Q58 46 64 42 Z" stroke="#5a3800" stroke-width="1.2" fill="rgba(90,56,0,.2)"/>
+          <rect x="43" y="49" width="10" height="2.5" rx="1" fill="#5a3800"/>
+          <path id="arc" d="M 18 38 A 30 30 0 0 1 78 38" fill="none"/>
+          <text font-size="5.5" fill="#5a3800" font-family="Arial,sans-serif" font-weight="700" letter-spacing="2">
+            <textPath href="#arc" startOffset="12%">OFFICIAL · SEAL · PH LAWYER GUIDE</textPath>
+          </text>
+          <circle cx="48" cy="58" r="2" fill="#8a6318"/>
+          <circle cx="42" cy="57" r="1.2" fill="#c9a84c" opacity=".7"/>
+          <circle cx="54" cy="57" r="1.2" fill="#c9a84c" opacity=".7"/>
+        </svg>
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="sig-block">
+        <div class="sig-line">
+          <svg viewBox="0 0 120 30" style="width:clamp(80px,14vw,130px);height:clamp(18px,3vw,32px)">
+            <path d="M5 25 Q20 5 35 20 Q45 30 55 15 Q65 5 75 18 Q85 28 95 12 Q105 3 115 20" stroke="#1a0a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="sig-name">${signer}</div>
+        <div class="sig-title">Chief Justice<br>Supreme Court of the Philippines<br><em>(Honorary)</em></div>
+      </div>
+    </div>
+
+    <!-- DATE -->
+    <div class="date-block">
+      <div class="date-label">Date Awarded</div>
+      <div class="date-val">${date}</div>
+    </div>
+  </div>
+</div>
+${forPrint ? `<script>
+  window.addEventListener('load', function(){
+    // Wait for fonts to fully render before printing
+    document.fonts.ready.then(function(){
+      setTimeout(function(){ window.print(); }, 400);
+    });
+  });
+<\/script>` : ''}
+</body>
+</html>`;
+}
+
 function printCert(){
-  const paper=document.getElementById('cert-paper');
-  const win=window.open('','_blank','width=1000,height=720');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title><style>@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;600;700&display=swap');*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Cormorant Garamond',serif}#cp{width:100vw;height:calc(100vw/1.414);max-height:100vh;max-width:calc(100vh*1.414)}@media print{body{display:block}#cp{width:297mm;height:210mm;max-height:none;max-width:none}@page{size:A4 landscape;margin:0}}</style></head><body><div id="cp">${paper.outerHTML}</div><script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
+  showToast('🖨 Opening print preview…');
+  const html = buildCertHTML(true);
+  const win = window.open('', '_blank', 'width=1100,height=780');
+  if(!win){ showToast('⚠ Allow popups to print'); return; }
+  win.document.open();
+  win.document.write(html);
   win.document.close();
 }
 
 function downloadCertPNG(){
-  const paper=document.getElementById('cert-paper');
-  const w=paper.offsetWidth,h=paper.offsetHeight;
-  // Serialize SVGs embedded in the cert
-  const data=`<svg xmlns="http://www.w3.org/2000/svg" width="${w*2}" height="${h*2}"><foreignObject width="${w}" height="${h}" style="transform:scale(2);transform-origin:top left"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${w}px;height:${h}px">${paper.outerHTML}</div></foreignObject></svg>`;
-  const blob=new Blob([data],{type:'image/svg+xml'});
-  const url=URL.createObjectURL(blob);
-  const img=new Image();
-  img.onload=()=>{
-    const canvas=document.createElement('canvas');canvas.width=w*2;canvas.height=h*2;
-    const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
-    const link=document.createElement('a');
-    link.download='ph-lawyer-certificate.png';
-    link.href=canvas.toDataURL('image/png');link.click();
-    URL.revokeObjectURL(url);showToast('✓ Certificate downloaded!');
+  showToast('⏳ Rendering certificate…');
+  const html = buildCertHTML(false);
+
+  // Render into a hidden iframe at a fixed 1600×1131 (A4 landscape @~135dpi)
+  const CW = 1600, CH = 1131;
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = `position:fixed;left:-9999px;top:-9999px;width:${CW}px;height:${CH}px;border:none;visibility:hidden`;
+  document.body.appendChild(iframe);
+
+  iframe.onload = function(){
+    // Wait for fonts inside iframe
+    const iDoc = iframe.contentDocument;
+    const iWin = iframe.contentWindow;
+    const wrap = iDoc.getElementById('wrap');
+    if(wrap){
+      // Force exact pixel size
+      wrap.style.width  = CW + 'px';
+      wrap.style.height = CH + 'px';
+      wrap.style.position = 'absolute';
+      wrap.style.top = '0';
+      wrap.style.left = '0';
+      iDoc.body.style.margin = '0';
+      iDoc.body.style.padding = '0';
+      iDoc.body.style.overflow = 'hidden';
+    }
+
+    const doCapture = () => {
+      iDoc.fonts.ready.then(() => {
+        setTimeout(() => {
+          try {
+            // Use the QR data URL already baked into the HTML — no canvas taint issues
+            const canvas = document.createElement('canvas');
+            canvas.width = CW; canvas.height = CH;
+            const ctx = canvas.getContext('2d');
+
+            // Draw white background first
+            ctx.fillStyle = '#fffdf5';
+            ctx.fillRect(0, 0, CW, CH);
+
+            // Serialize the iframe DOM to SVG foreignObject
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const serialized = new XMLSerializer().serializeToString(iDoc.documentElement);
+            const svgStr = `<svg xmlns="${svgNS}" width="${CW}" height="${CH}">
+              <foreignObject width="${CW}" height="${CH}">
+                ${serialized}
+              </foreignObject>
+            </svg>`;
+            const blob = new Blob([svgStr], {type:'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, CW, CH);
+              URL.revokeObjectURL(url);
+              document.body.removeChild(iframe);
+              const link = document.createElement('a');
+              link.download = 'ph-lawyer-certificate.png';
+              link.href = canvas.toDataURL('image/png', 1.0);
+              link.click();
+              showToast('✓ Certificate PNG downloaded!');
+            };
+            img.onerror = () => {
+              URL.revokeObjectURL(url);
+              document.body.removeChild(iframe);
+              // Final fallback: open print → Save as PDF
+              showToast('💡 Tip: Use Print → Save as PDF for best quality');
+              setTimeout(() => printCert(), 600);
+            };
+            img.src = url;
+          } catch(e) {
+            document.body.removeChild(iframe);
+            showToast('💡 Use Print → Save as PDF for best quality');
+            setTimeout(() => printCert(), 600);
+          }
+        }, 800); // give fonts/layout time to settle
+      });
+    };
+
+    if(iWin.document.fonts && iWin.document.fonts.ready){
+      doCapture();
+    } else {
+      setTimeout(doCapture, 1200);
+    }
   };
-  img.onerror=()=>{
-    // Fallback: open print dialog
-    showToast('💡 Use Print → Save as PDF instead');setTimeout(()=>printCert(),800);
-  };
-  img.src=url;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  iframe.src = URL.createObjectURL(blob);
 }
 
 // Close modal on backdrop click
